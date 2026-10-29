@@ -1,7 +1,10 @@
 import os
 import pickle
+import pandas as pd
 import streamlit as st
-from ml_pipeline import train_and_save_model
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 from llm_helper import analyze_and_draft_reply
 
 st.set_page_config(page_title="AI Support Tagger", page_icon="🤖")
@@ -9,11 +12,40 @@ st.title("🤖 Smart Support Inbox")
 
 model_path = "models/text_classifier.pkl"
 
-# Automatically train the model if the file doesn't exist yet!
+# All-in-one training logic directly inside app.py to avoid import errors!
 if not os.path.exists(model_path):
     with st.spinner("Initializing and training machine learning model..."):
-        train_and_save_model()
+        data = {
+            "text": [
+                "Hey, where is my order? It has been a week.",
+                "Can I get a refund for my item? It arrived broken.",
+                "Hi, do you sell this dress in blue or size M?",
+                "My tracking number says invalid, can you check?",
+                "I want my money back, this product doesn't work.",
+                "Are you guys open on Sundays? What are your hours?",
+                "Is the promo code still active for the shoes?",
+                "I need to cancel my order before it ships out.",
+                "Where is your shop located? Can I walk in?",
+                "The app keeps crashing when I checkout. Please help."
+            ],
+            "category": [
+                "Delivery Status", "Refund Request", "Product Inquiry", "Delivery Status", "Refund Request",
+                "General Inquiry", "Product Inquiry", "Order Modification", "General Inquiry", "Technical Support"
+            ]
+        }
+        df = pd.DataFrame(data)
+        X, y = df["text"], df["category"]
+        
+        pipeline = Pipeline([
+            ('tfidf', TfidfVectorizer(stop_words='english', lowercase=True)),
+            ('classifier', LogisticRegression(C=1.0, max_iter=1000))
+        ])
+        pipeline.fit(X, y)
+        os.makedirs("models", exist_ok=True)
+        with open(model_path, "wb") as f:
+            pickle.dump(pipeline, f)
 
+# Load the verified pipeline weights
 with open(model_path, "rb") as f:
     ml_pipeline = pickle.load(f)
 
@@ -26,12 +58,12 @@ with st.sidebar:
 user_input = st.text_area("Type customer message:", value="Hey my order #4491 hasn't arrived. I need this urgently!!")
 
 if st.button("Process Message", type="primary"):
-    predicted_category = ml_pipeline.predict([user_input])[0] # Get text prediction string
+    predicted_category = ml_pipeline.predict([user_input])[0]
     ai_analysis = analyze_and_draft_reply(user_input, predicted_category)
     
     st.success("Processed!")
     col1, col2, col3 = st.columns(3)
-    col1.metric("Intent (ML)", predicted_category)
+    col1.metric("Intent (ML)", str(predicted_category))
     col2.metric("Sentiment", ai_analysis['sentiment'])
     col3.metric("Order ID", ai_analysis['extracted_order_id'])
     
