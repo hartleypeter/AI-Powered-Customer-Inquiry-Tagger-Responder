@@ -1,4 +1,5 @@
 # 📟 AI-Powered Customer Inquiry Tagger & Responder
+### 🌐 Live Demo: [Test the Live App Here] https://ai-powered-customer-inquiry-tagger-responder-cksrwznldgqhit2mz.streamlit.app/
 
 A hybrid machine learning and GenAI triage system designed to optimize customer support operations.
 
