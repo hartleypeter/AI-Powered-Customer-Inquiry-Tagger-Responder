@@ -20,7 +20,7 @@ If you are a beginner and want to see this application run live on your local co
 ### 1. Clone the Repository
 Download the project files to your machine:
 ```bash
-git clone https://github.com
+git clone https://github.com/hartleypeter/AI-Powered-Customer-Inquiry-Tagger-Responder
 cd AI-Powered-Customer-Inquiry-Tagger-Responder
 ```
 
