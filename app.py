@@ -5,14 +5,22 @@ import streamlit as st
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from llm_helper import analyze_and_draft_reply
+
+# 1. Self-contained Demo Response Function (Removes llm_helper dependency)
+def analyze_and_draft_reply_local(customer_message, detected_category):
+    # Standard Fallback Demo Mode for free usage
+    return {
+        "sentiment": "Neutral (Demo Mode)",
+        "extracted_order_id": "N/A",
+        "draft_reply": f"Hi! Thank you for messaging us regarding your inquiry about '{detected_category}'. A representative will assist you shortly."
+    }
 
 st.set_page_config(page_title="AI Support Tagger", page_icon="🤖")
 st.title("🤖 Smart Support Inbox")
 
 model_path = "models/text_classifier.pkl"
 
-# All-in-one training logic directly inside app.py to avoid import errors!
+# 2. All-in-one training logic directly inside app.py
 if not os.path.exists(model_path):
     with st.spinner("Initializing and training machine learning model..."):
         data = {
@@ -58,8 +66,8 @@ with st.sidebar:
 user_input = st.text_area("Type customer message:", value="Hey my order #4491 hasn't arrived. I need this urgently!!")
 
 if st.button("Process Message", type="primary"):
-    predicted_category = ml_pipeline.predict([user_input])[0]
-    ai_analysis = analyze_and_draft_reply(user_input, predicted_category)
+    predicted_category = ml_pipeline.predict([user_input])[0] # Get single string prediction
+    ai_analysis = analyze_and_draft_reply_local(user_input, predicted_category)
     
     st.success("Processed!")
     col1, col2, col3 = st.columns(3)
